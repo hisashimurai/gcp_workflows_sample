@@ -1,0 +1,76 @@
+main:
+  steps:
+  # 初期化(1回だけ実行)
+  - init:
+      assign:
+      # token有効期限(unix秒)
+      # 最初は強制取得させるため0にする
+      - token_expire_time: 0
+
+      # token初期値(null)
+      - token: null
+
+  # 実行結果による分岐
+  - eval_token_expired:
+      switch:
+      # 有効期限内ならprocに移る。
+      # 有効期限判定から、token利用まで少しの差があるので、有効期限は多少の余裕を持って値を設定すること
+      - condition: ${token_exp > sys.now()}
+        next: call_function
+
+  # CloudIAPを通過するためのトークンを取得する
+  # トークンを取得するだけの関数なので、Workflowsと同じus-central1にした
+  - get_new_token:
+      try:
+        call: http.get
+        args:
+          url: https://us-central1-[my-project-name].cloudfunctions.net/[func_name]
+          # Cloud Functionsを呼ぶための認証
+          auth:
+            type: OIDC
+          # 遅くともこのくらいあれば十分返せるはず
+          timeout: 10
+        result: token
+      retry: ${http.default_retry}
+
+  # tokenを更新したので、有効期限を3000秒後に設定（1時間ではなく、余裕をもたせている）
+  - update_token_expire_time:
+      assign:
+        - token_expire_time: ${sys.now() + 3000}
+
+  # 実行
+  - call_function:
+      call: http.get
+      args:
+        # test用のダミーURL
+        url: https://[myservicename]-dot-[my-project-name].an.r.appspot.com/[url]
+        headers:
+          # 取得したtokenをつける
+          Authorization: ${"Bearer " + token.body}
+        # SQL Exportや初回収集など、長いものもあるので、最大の30分に設定
+        timeout: 1800
+      result: res
+
+  # 実行結果を記録する
+  - record_log:
+      call: sys.log
+      args:
+        text: ${string(res.code) + " " + res.body}
+        severity: INFO
+
+  # 実行結果による分岐
+  - eval_function_result:
+      switch:
+      - condition: ${res.body == "ERR"}
+        next: record_err_log
+      - condition: ${res.body == "all_proc_finished"}
+        next: end
+      next: eval_token_expired
+
+  # ERRが帰ってきたとき、Criticalでもう一度ログ記録し終了する
+  - record_err_log:
+      call: sys.log
+      args:
+        text: "ERR was returned."
+        severity: CRITICAL
+      next: end
