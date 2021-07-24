@@ -9,22 +9,15 @@ CLOUD_SERVICE="workflows"
 CURRENT=$(cd $(dirname $0);pwd)
 # echo $CURRENT
 
-# フォルダ名取得
-DIR_NAME=`echo "$CURRENT" | sed -e 's/.*\/\([^\/]*\)$/\1/'`
-
 # 名前
-# 基本はフォルダ名=関数名
-NAME=$DIR_NAME
-
-# 入力する場合
-# NAME="XXXXXXX"
+NAME="your_workflow_name"
 
 # workflows
 gcloud $CLOUD_SERVICE deploy $NAME \
-  --source $CURRENT/main.yaml \
+  --source ${CURRENT}/main.yaml \
   --flags-file ${CURRENT}/deploy_flags.yaml
 
 # functions
 # gcloud $CLOUD_SERVICE deploy $NAME \
-#   --source $CURRENT/main.yaml \
+#   --source ${CURRENT}/main.yaml \
 #   --flags-file ${CURRENT}/deploy_flags.yaml
