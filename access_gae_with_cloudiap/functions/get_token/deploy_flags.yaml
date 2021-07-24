@@ -1,0 +1,34 @@
+# 書き換える
+--project: my-project-id
+
+# Workflowsのロケーションに合わせる
+--region: us-central1
+# --region: asia-northeast1
+
+--runtime: python39
+
+--memory: 128MB
+
+# 書き換える
+--service-account: my-project-id@appspot.gserviceaccount.com
+--entry-point: main
+
+# そんなにかからない
+--timeout: 10
+
+# 指定不要
+# --max-instances: 3
+
+# trigger
+# --trigger-topic: XXXXXXXXXX
+--trigger-http: 
+--security-level: secure-always
+# 内部利用しかしないので不要
+# --allow-unauthenticated
+
+# 環境変数
+--set-env-vars:
+  # Cloud IAPのClient IDを保存したSecretManagerのNameとversionを環境変数に持たせる
+  # 書き換える
+  CLOUD_IAP_CLIENT_ID_SECRET_NAME: cloud_iap_client_id
+  CLOUD_IAP_CLIENT_ID_SECRET_VERSION: "1" # 文字にしないとエラーが出た

@@ -1,0 +1,8 @@
+# 書き換える
+--project:  my-project-id
+
+# 今は日本にない
+--location:  us-central1
+
+# 書き換える
+--service-account: my-project-id@appspot.gserviceaccount.com

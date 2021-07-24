@@ -1,0 +1,16 @@
+# secret取得
+# https://github.com/hisashimurai/get_gcp_secret
+get_gcp_secret
+google-cloud-secret-manager
+
+# tokenの取得に必要
+google-auth-oauthlib
+google-auth
+
+# GAE/GCF等のmetadataを取得する
+# https://github.com/hisashimurai/get_metadata
+get_metadata
+
+# Cloud FunctionsにFlaskは不要
+# https://cloud.google.com/functions/docs/writing/specifying-dependencies-python?hl=ja#python38
+# Flask
