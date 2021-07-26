@@ -3,23 +3,23 @@ main:
   # 初期化(1回だけ実行)
   - init:
       assign:
-      # token有効期限(unix秒)
+      # Token有効期限(unix秒)
       # 最初は強制取得させるため0にする
       - token_expire_time: 0
 
-      # token初期値(null)
+      # Token初期値(null)
       - token: null
 
-  # 実行結果による分岐
+  # Token有効期限による分岐
   - eval_token_expired:
       switch:
-      # 有効期限内ならprocに移る。
-      # 有効期限判定から、token利用まで少しの差があるので、有効期限は多少の余裕を持って値を設定すること
+      # 有効期限内ならcall_functionに移る。
+      # 有効期限判定から、Token利用まで少しの差があるので、update_token_expire_timeでの有効期限は多少の余裕を持って値を設定すること
       - condition: ${token_exp > sys.now()}
         next: call_function
 
-  # CloudIAPを通過するためのトークンを取得する
-  # トークンを取得するだけの関数なので、Workflowsと同じus-central1にした
+  # CloudIAPを通過するためのTokenを取得する
+  # Tokenを取得するだけの関数なので、Workflowsと同じus-central1にした
   - get_new_token:
       try:
         call: http.get
@@ -33,7 +33,7 @@ main:
         result: token
       retry: ${http.default_retry}
 
-  # tokenを更新したので、有効期限を3000秒後に設定（1時間ではなく、余裕をもたせている）
+  # Tokenを更新したので、有効期限を3000秒後に設定（1時間ではなく、余裕をもたせている）
   - update_token_expire_time:
       assign:
         - token_expire_time: ${sys.now() + 3000}
@@ -42,12 +42,12 @@ main:
   - call_function:
       call: http.get
       args:
-        # test用のダミーURL
+        # 呼び出す対象(Target)
         url: https://[myservicename]-dot-[my-project-name].an.r.appspot.com/[url]
         headers:
           # 取得したtokenをつける
           Authorization: ${"Bearer " + token.body}
-        # SQL Exportや初回収集など、長いものもあるので、最大の30分に設定
+        # 長くかかるものもあるので、最大の30分に設定
         timeout: 1800
       result: res
 
